@@ -4,6 +4,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPing;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import lombok.Getter;
 import lombok.Setter;
 import me.caseload.knockbacksync.KnockbackSync;
@@ -14,7 +15,6 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
@@ -42,7 +42,7 @@ public class PlayerData {
     private final Random random = new Random();
 
     @Nullable
-    private BukkitTask combatTask;
+    private ScheduledTask combatTask;
 
     @Nullable @Setter
     private Long ping, previousPing;
@@ -194,7 +194,7 @@ public class PlayerData {
     public double calculateJumpVelocity() {
         double jumpVelocity = 0.42;
 
-        PotionEffect jumpEffect = player.getPotionEffect(PotionEffectType.JUMP);
+        PotionEffect jumpEffect = player.getPotionEffect(PotionEffectType.JUMP_BOOST); //JUMP was replaced with JUMP_BOOST
         if (jumpEffect != null) {
             int amplifier = jumpEffect.getAmplifier();
             jumpVelocity += (amplifier + 1) * 0.1F;
@@ -208,8 +208,9 @@ public class PlayerData {
     }
 
     public void updateCombat() {
-        if (isInCombat())
+        if (isInCombat()) {
             combatTask.cancel();
+        }
 
         combatTask = newCombatTask();
         CombatManager.addPlayer(player.getUniqueId());
@@ -224,10 +225,12 @@ public class PlayerData {
         timeline.clear(); // failsafe for packet loss idk
     }
 
-    @NotNull
-    private BukkitTask newCombatTask() {
-        return Bukkit.getScheduler().runTaskLaterAsynchronously(KnockbackSync.getInstance(),
-                () -> quitCombat(false), KnockbackSync.getInstance().getConfigManager().getCombatTimer());
+    private @NotNull ScheduledTask newCombatTask() {
+        long combatTimerTicks = KnockbackSync.getInstance().getConfigManager().getCombatTimer();
+
+        return Bukkit.getGlobalRegionScheduler().runDelayed(KnockbackSync.getInstance(),
+                task -> quitCombat(false),
+                combatTimerTicks);
     }
 
     public ClientVersion getClientVersion() {

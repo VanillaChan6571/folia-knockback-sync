@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import me.caseload.knockbacksync.KnockbackSync;
 import me.caseload.knockbacksync.runnable.PingRunnable;
-import org.bukkit.scheduler.BukkitTask;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 
 @Getter
 @Setter
@@ -26,7 +26,7 @@ public class ConfigManager {
     private String playerIneligibleMessage;
     private String reloadMessage;
 
-    private BukkitTask pingTask;
+    private ScheduledTask pingTask;
 
     public void loadConfig(boolean reloadConfig) {
         KnockbackSync instance = KnockbackSync.getInstance();
@@ -36,16 +36,11 @@ public class ConfigManager {
 
         toggled = instance.getConfig().getBoolean("enabled", true);
 
-        // Checks to see if the runnable was enabled...
-        // and if we now want to disable it
         boolean newRunnableEnabled = instance.getConfig().getBoolean("runnable.enabled", true);
-        if (runnableEnabled && newRunnableEnabled && pingTask != null) // null check for first startup
+        if (runnableEnabled && !newRunnableEnabled && pingTask != null)
             pingTask.cancel();
 
         runnableEnabled = newRunnableEnabled;
-
-        if (runnableEnabled)
-            pingTask = new PingRunnable().runTaskTimerAsynchronously(instance, 0L, runnableInterval);
 
         notifyUpdate = instance.getConfig().getBoolean("notify_updates", true);
         runnableInterval = instance.getConfig().getLong("runnable.interval", 5L);
@@ -57,5 +52,16 @@ public class ConfigManager {
         playerDisableMessage = instance.getConfig().getString("player_disable_message", "&cSuccessfully disabled KnockbackSync for %player%.");
         playerIneligibleMessage = instance.getConfig().getString("player_ineligible_message", "&c%player% is ineligible for KnockbackSync. If you believe this is an error, please open an issue on the github page.");
         reloadMessage = instance.getConfig().getString("reload_message", "&aSuccessfully reloaded KnockbackSync.");
+
+        if (runnableEnabled) {
+            if (pingTask != null) {
+                pingTask.cancel();
+            }
+            // Use a minimum of 1 tick for the initial delay and interval
+            long delay = Math.max(1, runnableInterval);
+            pingTask = instance.getServer().getGlobalRegionScheduler().runAtFixedRate(instance, task -> {
+                new PingRunnable().run();
+            }, delay, delay);
+        }
     }
 }

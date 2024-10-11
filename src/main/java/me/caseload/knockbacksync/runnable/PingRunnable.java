@@ -4,11 +4,10 @@ import me.caseload.knockbacksync.KnockbackSync;
 import me.caseload.knockbacksync.manager.CombatManager;
 import me.caseload.knockbacksync.manager.PlayerData;
 import me.caseload.knockbacksync.manager.PlayerDataManager;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.UUID;
 
-public class PingRunnable extends BukkitRunnable {
+public class PingRunnable implements Runnable {
 
     @Override
     public void run() {
