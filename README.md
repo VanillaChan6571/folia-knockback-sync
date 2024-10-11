@@ -1,4 +1,4 @@
-## Work in Progress.
+## Work in Progress for Folia. No Promises.
 
 Minecraft doesn’t factor in network latency when determining a player's actions on the server.
 This causes the server to receive outdated information that doesn’t reflect the player's clientside position.
