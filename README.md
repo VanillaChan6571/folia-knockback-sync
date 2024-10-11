@@ -1,4 +1,8 @@
-## Last Working Build for Folia: 1.21.1 DEV [Commit#88e0907...](https://github.com/PaperMC/Folia/commit/88e0907cadf2358e1d3e06222c0a97722ca4ce12)
+# Public Archived, Use at your own time.
+
+## This Folia Fork was made before Knockback-Sync made it official into their code.
+
+### Last Working Build for Folia: 1.21.1 DEV [Commit#88e0907...](https://github.com/PaperMC/Folia/commit/88e0907cadf2358e1d3e06222c0a97722ca4ce12)
 
 Minecraft doesn’t factor in network latency when determining a player's actions on the server.
 This causes the server to receive outdated information that doesn’t reflect the player's clientside position.
